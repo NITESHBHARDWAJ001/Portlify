@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 
 // Pages
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -12,11 +13,18 @@ import PortfolioView from './pages/PortfolioView';
 import Discover from './pages/Discover';
 import ResumeImport from './pages/ResumeImport';
 import ProfileLab from './pages/ProfileLab';
+import ChatBuilder from './pages/ChatBuilder';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
   return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+const LandingRoute = () => {
+  const { isAuthenticated } = useAuthStore();
+
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Home />;
 };
 
 function App() {
@@ -35,6 +43,8 @@ function App() {
         />
         
         <Routes>
+          <Route path="/" element={<LandingRoute />} />
+
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -82,9 +92,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/chat-builder"
+            element={
+              <ProtectedRoute>
+                <ChatBuilder />
+              </ProtectedRoute>
+            }
+          />
           
-          {/* Default Route */}
-          <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
       </div>
     </Router>

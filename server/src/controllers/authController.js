@@ -8,6 +8,8 @@ import {
   generateCanvasLayoutFromProfile,
   generateResumeMarkdown,
 } from '../utils/profileEngine.js';
+import { checkATSCompatibility, ATSValidator } from '../utils/atsValidator.js';
+import { generateResumePDF, ResumePDFGenerator } from '../utils/resumePDFGenerator.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -63,6 +65,59 @@ export const register = async (req, res, next) => {
     next(error);
   }
 };
+
+  // @desc    Check ATS compatibility of user's resume
+  // @route   POST /api/auth/check-ats-compatibility
+  // @access  Private
+  export const checkAtsCompatibility = async (req, res, next) => {
+    try {
+      const user = await User.findById(req.user.id);
+      const profileData = user.profileData && Object.keys(user.profileData).length
+        ? user.profileData
+        : defaultProfileData(user);
+
+      // Validate ATS compatibility
+      const atsResult = checkATSCompatibility(profileData);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          atsScore: atsResult.score,
+          isATSFriendly: atsResult.isATSFriendly,
+          issues: atsResult.issues,
+          warnings: atsResult.warnings,
+          summary: atsResult.summary
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // @desc    Get ATS optimization recommendations
+  // @route   GET /api/auth/ats-recommendations
+  // @access  Private
+  export const getAtsRecommendations = async (req, res, next) => {
+    try {
+      const user = await User.findById(req.user.id);
+      const profileData = user.profileData && Object.keys(user.profileData).length
+        ? user.profileData
+        : defaultProfileData(user);
+
+      const validator = new ATSValidator(profileData);
+      const recommendations = validator.getRecommendations();
+
+      res.status(200).json({
+        success: true,
+        data: {
+          recommendations,
+          score: validator.validate().score
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 
 // @desc    Login user
 // @route   POST /api/auth/login
@@ -400,92 +455,198 @@ export const downloadResumeFromProfile = async (req, res, next) => {
     if (githubHref) contactLinks.push({ label: 'GitHub', href: githubHref });
 
     const templateStyles = {
-      modern: { nameSize: 24, titleSize: 11, bodySize: 10.5, headingSize: 14, headingColor: '#111827', accentColor: '#1d4ed8' },
-      classic: { nameSize: 22, titleSize: 10.5, bodySize: 10, headingSize: 13, headingColor: '#111827', accentColor: '#0f766e' },
-      compact: { nameSize: 20, titleSize: 10, bodySize: 9.5, headingSize: 12, headingColor: '#111827', accentColor: '#2563eb' },
-      executive: { nameSize: 26, titleSize: 11, bodySize: 10.5, headingSize: 14, headingColor: '#0f172a', accentColor: '#4338ca' },
+      modern: { 
+        nameSize: 28, titleSize: 12, bodySize: 10.5, headingSize: 13, 
+        headingColor: '#111827', accentColor: '#1d4ed8', lineHeight: 1.3,
+        margins: { top: 40, bottom: 40, left: 50, right: 50 }
+      },
+      classic: { 
+        nameSize: 26, titleSize: 11.5, bodySize: 10, headingSize: 12.5, 
+        headingColor: '#111827', accentColor: '#0f766e', lineHeight: 1.25,
+        margins: { top: 40, bottom: 40, left: 50, right: 50 }
+      },
+      compact: { 
+        nameSize: 24, titleSize: 11, bodySize: 9.75, headingSize: 12, 
+        headingColor: '#111827', accentColor: '#2563eb', lineHeight: 1.2,
+        margins: { top: 35, bottom: 35, left: 45, right: 45 }
+      },
+      executive: { 
+        nameSize: 28, titleSize: 12.5, bodySize: 10.75, headingSize: 13.5, 
+        headingColor: '#0f172a', accentColor: '#4338ca', lineHeight: 1.35,
+        margins: { top: 45, bottom: 45, left: 55, right: 55 }
+      },
     };
     const style = templateStyles[template];
 
+    // Font selection for each template
     const nameFont = template === 'classic' ? 'Times-Bold' : 'Helvetica-Bold';
     const bodyFont = template === 'classic' ? 'Times-Roman' : 'Helvetica';
     const headingFont = template === 'classic' ? 'Times-Bold' : 'Helvetica-Bold';
 
-    const titlePrefix = template === 'executive' ? 'Professional Profile' : '';
-    doc.font(nameFont).fontSize(style.nameSize).fillColor(style.headingColor).text(displayName, { align: 'center' });
-    doc.moveDown(0.2);
-    doc.font(bodyFont).fontSize(style.titleSize).fillColor('#374151').text(
-      titlePrefix ? `${titlePrefix} | ${headline}` : headline,
-      { align: 'center' }
-    );
-    doc.moveDown(0.35);
+    // Header section: Name and title
+    doc.font(nameFont).fontSize(style.nameSize).fillColor(style.headingColor).text(displayName, {
+      align: 'center',
+      lineGap: 2
+    });
+    doc.moveDown(0.15);
 
+    // Professional headline
+    const titlePrefix = template === 'executive' ? 'EXECUTIVE PROFILE' : '';
+    const fullTitle = titlePrefix ? `${titlePrefix} | ${headline}` : headline;
+    doc.font(bodyFont).fontSize(style.titleSize).fillColor('#374151').text(fullTitle, {
+      align: 'center'
+    });
+    doc.moveDown(0.25);
+
+    // Contact information - clean, scannable format
     if (contactInfo.length) {
-      doc.font(bodyFont).fontSize(9.5).fillColor('#4b5563').text(contactInfo.join('  |  '), { align: 'center' });
-      doc.moveDown(0.15);
+      doc.font(bodyFont).fontSize(9.5).fillColor('#4b5563').text(contactInfo.join(' • '), {
+        align: 'center',
+        lineGap: 1
+      });
+      doc.moveDown(0.1);
     }
 
-    // Safer centered link rendering to avoid PDF coordinate NaN in some cases
-    contactLinks.forEach((item) => {
-      if (!item.href) return;
-      doc.font(bodyFont).fontSize(9.5).fillColor(style.accentColor).text(item.label, {
+    // Social links with better formatting (for ATS compatibility)
+    if (contactLinks.length) {
+      const linkText = contactLinks.map((item) => `${item.label}: ${item.href}`).join(' | ');
+      doc.font(bodyFont).fontSize(9).fillColor(style.accentColor).text(linkText, {
         align: 'center',
-        link: item.href,
-        underline: true,
+        lineGap: 0.5
       });
-    });
+    }
 
-    doc.moveDown(0.6);
-    doc.strokeColor('#e5e7eb').lineWidth(1).moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke();
-    doc.moveDown(0.8);
+    // Decorative divider
+    doc.moveDown(0.35);
+    doc.strokeColor('#d1d5db').lineWidth(0.5).moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke();
+    doc.moveDown(0.5);
 
     const lines = resumeMarkdown.split('\n');
     const firstSectionIndex = lines.findIndex((line) => line.startsWith('## '));
     const renderLines = firstSectionIndex >= 0 ? lines.slice(firstSectionIndex) : lines;
 
-    renderLines.forEach((line) => {
+    let currentSection = null;
+    let isFirstItemInSection = true;
+
+    renderLines.forEach((line, index) => {
       if (!line.trim()) {
-        doc.moveDown(0.6);
+        // Smaller gap for empty lines
+        if (doc.y < doc.page.height - 40) doc.moveDown(0.3);
         return;
       }
 
-      if (line.startsWith('# ')) {
-        doc.font(headingFont).fontSize(style.nameSize - 2).fillColor(style.headingColor).text(line.replace(/^#\s*/, ''));
-        doc.moveDown(0.5);
-        return;
-      }
-
+      // Main sections (##)
       if (line.startsWith('## ')) {
-        doc.font(headingFont).fontSize(style.headingSize).fillColor(style.headingColor).text(line.replace(/^##\s*/, ''));
+        currentSection = line.replace(/^##\s*/, '').trim();
+        
+        // Add spacing before section (except first)
+        if (index > 0) doc.moveDown(0.4);
+        
+        doc.font(headingFont)
+          .fontSize(style.headingSize)
+          .fillColor(style.headingColor)
+          .text(currentSection);
+        
+        // Underline for sections
+        const lineWidth = doc.widthOfString(currentSection);
+        doc.strokeColor(style.accentColor)
+          .lineWidth(1.5)
+          .moveTo(50, doc.y)
+          .lineTo(50 + lineWidth, doc.y)
+          .stroke();
+        
         doc.moveDown(0.25);
+        isFirstItemInSection = true;
         return;
       }
 
+      // Subsections (###) - Job titles, project names
       if (line.startsWith('### ')) {
-        doc.font(headingFont).fontSize(style.headingSize - 1).fillColor(style.headingColor).text(line.replace(/^###\s*/, ''));
+        const jobTitle = line.replace(/^###\s*/, '').trim();
+        
+        if (!isFirstItemInSection) doc.moveDown(0.15);
+        doc.font(headingFont)
+          .fontSize(style.headingSize - 1)
+          .fillColor(style.headingColor)
+          .text(jobTitle);
+        
+        isFirstItemInSection = false;
         return;
       }
 
-      if (line.toLowerCase().startsWith('link:')) {
-        const raw = line.replace(/^link:\s*/i, '').trim();
-        const href = asLink(raw);
-        if (href) {
-          doc.font(bodyFont).fontSize(style.bodySize).fillColor(style.accentColor).text('Project Link', {
-            link: href,
-            underline: true,
+      // Bold text for company/institution (** **) or duration info
+      if (line.includes('**') && !line.startsWith('-')) {
+        const parts = line.split(/\*\*(.*?)\*\*/g);
+        let x = 50;
+        
+        parts.forEach((part, idx) => {
+          if (!part) return;
+          
+          const isBold = idx % 2 === 1;
+          doc.font(isBold ? headingFont : bodyFont)
+            .fontSize(style.bodySize)
+            .fillColor(isBold ? style.headingColor : '#374151');
+          
+          // Check if this will fit on current line
+          const width = doc.widthOfString(part);
+          if (x + width > doc.page.width - 50) {
+            doc.moveDown(0.25);
+            x = 50;
+          }
+          
+          doc.text(part, x, undefined, { 
+            continued: idx < parts.length - 1,
+            lineGap: 1
           });
-        } else {
-          doc.font(bodyFont).fontSize(style.bodySize).fillColor('#374151').text(line);
-        }
+          x = doc.x;
+        });
+        
+        if (!line.endsWith(' ')) doc.moveDown(0.1);
         return;
       }
 
-      if (line.startsWith('- ')) {
-        doc.font(bodyFont).fontSize(style.bodySize).fillColor('#111827').text(`• ${line.replace(/^-\s*/, '')}`, { indent: 14 });
+      // Bullet points - properly indented and formatted
+      if (line.startsWith('- ') || line.startsWith('• ')) {
+        const bulletText = line.replace(/^[-•]\s*/, '').trim();
+        const bulletSize = style.bodySize;
+        
+        // Use proper bullet with spacing
+        doc.font(bodyFont)
+          .fontSize(bulletSize)
+          .fillColor('#111827')
+          .text(`• ${bulletText}`, 65, undefined, {
+            width: doc.page.width - 130,
+            lineGap: 2,
+            paragraphGap: 0
+          });
+        
         return;
       }
 
-      doc.font(bodyFont).fontSize(style.bodySize).fillColor('#374151').text(line);
+      // Links in special format (Link: URL)
+      if (line.toLowerCase().startsWith('link:') || line.toLowerCase().startsWith('tech:')) {
+        const [label, ...rest] = line.split(':');
+        const value = rest.join(':').trim();
+        
+        doc.font(bodyFont)
+          .fontSize(style.bodySize)
+          .fillColor(style.accentColor)
+          .text(`${label}: ${value}`, {
+            lineGap: 1,
+            underline: line.toLowerCase().startsWith('link:')
+          });
+        
+        return;
+      }
+
+      // Default paragraph text
+      doc.font(bodyFont)
+        .fontSize(style.bodySize)
+        .fillColor('#374151')
+        .text(line, {
+          lineGap: 1,
+          paragraphGap: 2
+        });
     });
 
     doc.end();

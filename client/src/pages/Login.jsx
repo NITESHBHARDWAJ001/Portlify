@@ -6,6 +6,8 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
+import AuthShell from '../components/layout/AuthShell';
+import { FiArrowRight, FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function Login() {
@@ -16,6 +18,10 @@ export default function Login() {
     password: '',
   });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const getErrorMessage = (error) =>
+    error?.response?.data?.message || 'Unable to sign in right now. Please check your details and try again.';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,59 +36,87 @@ export default function Login() {
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
+      toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Portfolio Builder</CardTitle>
-          <CardDescription className="text-center">
-            Sign in to create amazing portfolios
+    <AuthShell
+      eyebrow="Welcome back"
+      title="Sign in to keep building a portfolio that looks and feels premium."
+      description="Use the same workspace to manage your portfolio, refine your resume story, and publish responsive pages that look sharp on every screen."
+      badgeText="Secure sign in"
+    >
+      <Card className="border-white/8 bg-white/5 shadow-[0_18px_70px_rgba(0,0,0,0.35)]">
+        <CardHeader className="p-0 pb-6">
+          <CardTitle className="text-2xl text-white">Portfolio Builder</CardTitle>
+          <CardDescription className="text-[#9CA3AF]">
+            Use your account to access the editor, templates, resume tools, and your live portfolio.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="p-0">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
+              <Label htmlFor="email" className="text-[#E5E7EB]">Email</Label>
+              <div className="relative">
+                <FiMail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="h-12 border-white/10 bg-white/5 pl-10 text-white placeholder:text-[#6B7280] focus:border-[#06B6D4]"
+                  required
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-              />
+              <Label htmlFor="password" className="text-[#E5E7EB]">Password</Label>
+              <div className="relative">
+                <FiLock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="h-12 border-white/10 bg-white/5 pl-10 pr-12 text-white placeholder:text-[#6B7280] focus:border-[#06B6D4]"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] transition hover:text-white"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <FiEyeOff className="h-4 w-4" /> : <FiEye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
+            <Button
+              type="submit"
+              className="group flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#06B6D4] text-white shadow-lg shadow-[#7C3AED]/20 transition-all duration-200 hover:scale-[1.01]"
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+              {!loading && <FiArrowRight className="ml-2 transition-transform group-hover:translate-x-0.5" />}
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
-            <span className="text-gray-600">Don't have an account? </span>
-            <Link to="/register" className="text-blue-600 hover:underline font-medium">
-              Sign up
+          <div className="mt-5 flex items-center justify-between gap-4 text-sm text-[#9CA3AF]">
+            <span>Need an account?</span>
+            <Link to="/register" className="font-medium text-[#A5F3FC] transition hover:text-white">
+              Create one
             </Link>
           </div>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

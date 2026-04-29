@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Textarea } from '../components/ui/Textarea';
+import BrandLogo from '../components/branding/BrandLogo';
 
 const emptyExperience = { title: '', company: '', location: '', duration: '', highlights: [] };
 const emptyEducation = { degree: '', institution: '', duration: '', location: '' };
@@ -212,264 +213,435 @@ export default function ProfileLab() {
   };
 
   if (loading || !profile) {
-    return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading profile lab...</div>;
+    return (
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0B0F1A]">
+        <div className="absolute inset-0 brand-grid opacity-25" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-[#7C3AED]/15 blur-3xl" />
+        <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-[#06B6D4]/12 blur-3xl" />
+        
+        <div className="relative text-center">
+          <div className="w-16 h-16 rounded-full border-4 border-[#2563EB]/30 border-t-[#06B6D4] animate-spin mx-auto mb-6" />
+          <p className="text-[#9CA3AF]">Loading profile lab...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Profile Lab</h1>
-            <p className="text-sm text-slate-600">Maintain profile, generate ATS-friendly resume, and create portfolio draft.</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              <FiArrowLeft className="mr-2" /> Dashboard
-            </Button>
-            <Button onClick={saveProfile} disabled={saving}>
-              <FiSave className="mr-2" /> {saving ? 'Saving...' : 'Save Profile'}
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="relative min-h-screen overflow-hidden bg-[#0B0F1A] text-[#E5E7EB]">
+      <div className="absolute inset-0 brand-grid opacity-25" />
+      <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-[#7C3AED]/15 blur-3xl" />
+      <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-[#06B6D4]/12 blur-3xl" />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Profile</CardTitle>
-              <CardDescription>Core details used for both resume and portfolio generation.</CardDescription>
-              <div className="flex flex-wrap gap-2 pt-2">
-                <Button type="button" size="sm" variant="outline" onClick={() => applySample('frontend')}>
-                  Load Frontend Sample
-                </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => applySample('backend')}>
-                  Load Backend Sample
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input placeholder="Full name" value={profile.name || ''} onChange={(e) => patch('name', e.target.value)} />
-              <Input placeholder="Headline (e.g. Full Stack Engineer)" value={profile.headline || ''} onChange={(e) => patch('headline', e.target.value)} />
-              <Input placeholder="Email" value={profile.email || ''} onChange={(e) => patch('email', e.target.value)} />
-              <Input placeholder="Phone" value={profile.phone || ''} onChange={(e) => patch('phone', e.target.value)} />
-              <Input placeholder="Location" value={profile.location || ''} onChange={(e) => patch('location', e.target.value)} />
-              <Input placeholder="Website" value={profile.website || ''} onChange={(e) => patch('website', e.target.value)} />
-              <Input placeholder="LinkedIn username/url" value={profile.linkedin || ''} onChange={(e) => patch('linkedin', e.target.value)} />
-              <Input placeholder="GitHub username/url" value={profile.github || ''} onChange={(e) => patch('github', e.target.value)} />
-              <div className="md:col-span-2">
-                <Textarea placeholder="Professional summary" value={profile.summary || ''} onChange={(e) => patch('summary', e.target.value)} rows={4} />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Skills</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-2 mb-3">
-                <Input placeholder="Add skill (React, Node.js, AWS...)" value={skillInput} onChange={(e) => setSkillInput(e.target.value)} />
-                <Button type="button" onClick={addSkill}><FiPlus /></Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {(profile.skills || []).map((s, i) => (
-                  <span key={`${s}-${i}`} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-sm">
-                    {typeof s === 'string' ? s : s.name}
-                    <button
-                      onClick={() => patch('skills', profile.skills.filter((_, idx) => idx !== i))}
-                      className="text-indigo-500 hover:text-indigo-700"
-                    >
-                      <FiTrash2 size={12} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Experience</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {(profile.experience || []).map((exp, i) => (
-                <div key={i} className="p-4 border rounded-lg bg-white space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <Input placeholder="Role" value={exp.title || ''} onChange={(e) => {
-                      const next = [...profile.experience];
-                      next[i] = { ...next[i], title: e.target.value };
-                      patch('experience', next);
-                    }} />
-                    <Input placeholder="Company" value={exp.company || ''} onChange={(e) => {
-                      const next = [...profile.experience];
-                      next[i] = { ...next[i], company: e.target.value };
-                      patch('experience', next);
-                    }} />
-                    <Input placeholder="Duration" value={exp.duration || ''} onChange={(e) => {
-                      const next = [...profile.experience];
-                      next[i] = { ...next[i], duration: e.target.value };
-                      patch('experience', next);
-                    }} />
-                    <Input placeholder="Location" value={exp.location || ''} onChange={(e) => {
-                      const next = [...profile.experience];
-                      next[i] = { ...next[i], location: e.target.value };
-                      patch('experience', next);
-                    }} />
-                  </div>
-                  <Textarea
-                    rows={3}
-                    placeholder="Highlights (one per line)"
-                    value={(exp.highlights || []).join('\n')}
-                    onChange={(e) => {
-                      const next = [...profile.experience];
-                      next[i] = {
-                        ...next[i],
-                        highlights: e.target.value.split('\n').map((x) => x.trim()).filter(Boolean),
-                      };
-                      patch('experience', next);
-                    }}
-                  />
-                  <Button variant="outline" onClick={() => patch('experience', profile.experience.filter((_, idx) => idx !== i))}>
-                    <FiTrash2 className="mr-2" /> Remove
-                  </Button>
-                </div>
-              ))}
-              <Button variant="outline" onClick={() => patch('experience', [...(profile.experience || []), { ...emptyExperience }])}>
-                <FiPlus className="mr-2" /> Add Experience
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Projects</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {(profile.projects || []).map((proj, i) => (
-                <div key={i} className="p-4 border rounded-lg bg-white space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <Input placeholder="Project name" value={proj.name || ''} onChange={(e) => {
-                      const next = [...profile.projects];
-                      next[i] = { ...next[i], name: e.target.value };
-                      patch('projects', next);
-                    }} />
-                    <Input placeholder="Live link" value={proj.link || ''} onChange={(e) => {
-                      const next = [...profile.projects];
-                      next[i] = { ...next[i], link: e.target.value };
-                      patch('projects', next);
-                    }} />
-                  </div>
-                  <Textarea placeholder="Description" value={proj.description || ''} onChange={(e) => {
-                    const next = [...profile.projects];
-                    next[i] = { ...next[i], description: e.target.value };
-                    patch('projects', next);
-                  }} rows={3} />
-                  <Input placeholder="Tech stack (comma separated)" value={(proj.tech || []).join(', ')} onChange={(e) => {
-                    const next = [...profile.projects];
-                    next[i] = { ...next[i], tech: parseCsv(e.target.value) };
-                    patch('projects', next);
-                  }} />
-                </div>
-              ))}
-              <Button variant="outline" onClick={() => patch('projects', [...(profile.projects || []), { ...emptyProject }])}>
-                <FiPlus className="mr-2" /> Add Project
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Generate Assets</CardTitle>
-              <CardDescription>Create ATS-friendly resume text and a portfolio draft from this profile.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button className="w-full" onClick={() => generateAssets(false)}>
-                <FiFileText className="mr-2" /> Generate Resume + Portfolio Content
-              </Button>
+      <div className="relative mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <header className="sticky top-0 z-40 mb-8 mt-6 rounded-[28px] border border-white/8 bg-white/5 px-4 py-5 backdrop-blur sm:px-6">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-4">
+              <BrandLogo compact />
               <div>
-                <label className="text-xs font-medium text-slate-600 mb-1 block">Resume Template (4 types)</label>
-                <select
-                  value={resumeTemplate}
-                  onChange={(e) => setResumeTemplate(e.target.value)}
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                >
-                  <option value="modern">Modern</option>
-                  <option value="classic">Classic</option>
-                  <option value="compact">Compact</option>
-                  <option value="executive">Executive</option>
-                </select>
+                <h1 className="text-2xl font-bold text-white sm:text-3xl">Profile Lab</h1>
+                <p className="mt-1 text-sm text-[#9CA3AF]">Maintain profile, generate ATS-friendly resume, and create portfolio draft</p>
               </div>
-              <Button className="w-full" variant="outline" onClick={downloadResume}>
-                <FiDownload className="mr-2" /> Download ATS Resume (.pdf)
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/dashboard')}
+                className="border-white/10 bg-white/5 text-[#E5E7EB] hover:border-[#06B6D4] hover:bg-white/10"
+              >
+                <FiArrowLeft className="mr-2 h-4 w-4" /> Dashboard
               </Button>
-              <Button className="w-full" variant="outline" onClick={() => generateAssets(true)}>
-                <FiZap className="mr-2" /> Create Portfolio Draft in Editor
+              <Button
+                onClick={saveProfile}
+                disabled={saving}
+                className="bg-gradient-to-r from-[#7C3AED] to-[#06B6D4] text-white hover:shadow-lg disabled:opacity-50"
+              >
+                <FiSave className="mr-2 h-4 w-4" /> {saving ? 'Saving...' : 'Save Profile'}
               </Button>
-              {generatedResume && (
-                <Textarea value={generatedResume} readOnly rows={12} className="font-mono text-xs" />
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </header>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>ATS Friendliness Check</CardTitle>
-              <CardDescription>Paste a target job description for match analysis.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Textarea
-                rows={8}
-                placeholder="Paste target job description..."
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-              />
-              <Button className="w-full" onClick={runATS}>
-                <FiTarget className="mr-2" /> Run ATS Check
-              </Button>
-
-              {atsResult && (
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span>ATS Score</span>
-                      <span className="font-semibold">{atsResult.score}/100</span>
-                    </div>
-                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                      <div className={`h-full ${atsTone}`} style={{ width: `${atsResult.score}%` }} />
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-slate-600">
-                    Keyword coverage: <strong>{atsResult.keywordCoverage}%</strong>
-                  </div>
-
-                  {!!atsResult.issues?.length && (
-                    <div>
-                      <p className="text-sm font-semibold mb-1">Issues</p>
-                      <ul className="text-xs text-rose-700 list-disc pl-4 space-y-1">
-                        {atsResult.issues.map((x, i) => <li key={i}>{x}</li>)}
-                      </ul>
-                    </div>
-                  )}
-
-                  {!!atsResult.suggestions?.length && (
-                    <div>
-                      <p className="text-sm font-semibold mb-1">Suggestions</p>
-                      <ul className="text-xs text-emerald-700 list-disc pl-4 space-y-1">
-                        {atsResult.suggestions.map((x, i) => <li key={i}>{x}</li>)}
-                      </ul>
-                    </div>
-                  )}
+        {/* Main Content */}
+        <main className="pb-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Profile Card */}
+            <Card className="border-white/8 bg-gradient-to-br from-[#111827] to-[#0B0F1A] shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
+              <CardHeader>
+                <CardTitle className="text-white">Basic Profile</CardTitle>
+                <CardDescription className="text-[#9CA3AF]">Core details used for both resume and portfolio generation.</CardDescription>
+                <div className="flex flex-wrap gap-2 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => applySample('frontend')}
+                    className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#E5E7EB] hover:border-[#06B6D4] hover:bg-white/10"
+                  >
+                    Load Frontend Sample
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applySample('backend')}
+                    className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#E5E7EB] hover:border-[#06B6D4] hover:bg-white/10"
+                  >
+                    Load Backend Sample
+                  </button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <Input
+                  placeholder="Full name"
+                  value={profile.name || ''}
+                  onChange={(e) => patch('name', e.target.value)}
+                  className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                />
+                <Input
+                  placeholder="Headline (e.g. Full Stack Engineer)"
+                  value={profile.headline || ''}
+                  onChange={(e) => patch('headline', e.target.value)}
+                  className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                />
+                <Input
+                  placeholder="Email"
+                  value={profile.email || ''}
+                  onChange={(e) => patch('email', e.target.value)}
+                  className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                />
+                <Input
+                  placeholder="Phone"
+                  value={profile.phone || ''}
+                  onChange={(e) => patch('phone', e.target.value)}
+                  className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                />
+                <Input
+                  placeholder="Location"
+                  value={profile.location || ''}
+                  onChange={(e) => patch('location', e.target.value)}
+                  className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                />
+                <Input
+                  placeholder="Website"
+                  value={profile.website || ''}
+                  onChange={(e) => patch('website', e.target.value)}
+                  className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                />
+                <Input
+                  placeholder="LinkedIn username/url"
+                  value={profile.linkedin || ''}
+                  onChange={(e) => patch('linkedin', e.target.value)}
+                  className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                />
+                <Input
+                  placeholder="GitHub username/url"
+                  value={profile.github || ''}
+                  onChange={(e) => patch('github', e.target.value)}
+                  className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                />
+                <div className="md:col-span-2">
+                  <Textarea
+                    placeholder="Professional summary"
+                    value={profile.summary || ''}
+                    onChange={(e) => patch('summary', e.target.value)}
+                    rows={4}
+                    className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Skills Card */}
+            <Card className="border-white/8 bg-gradient-to-br from-[#111827] to-[#0B0F1A] shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
+              <CardHeader>
+                <CardTitle className="text-white">Skills</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-2 mb-3">
+                  <Input
+                    placeholder="Add skill (React, Node.js, AWS...)"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                  />
+                  <button
+                    type="button"
+                    onClick={addSkill}
+                    className="rounded-lg bg-gradient-to-r from-[#7C3AED] to-[#06B6D4] px-3 py-2 text-white hover:shadow-lg transition-all"
+                  >
+                    <FiPlus />
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(profile.skills || []).map((s, i) => (
+                    <span key={`${s}-${i}`} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#06B6D4]/20 bg-[#06B6D4]/10 text-[#06B6D4] text-sm">
+                      {typeof s === 'string' ? s : s.name}
+                      <button
+                        onClick={() => patch('skills', profile.skills.filter((_, idx) => idx !== i))}
+                        className="text-[#06B6D4] hover:text-[#E5E7EB]"
+                      >
+                        <FiTrash2 size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Experience Card */}
+            <Card className="border-white/8 bg-gradient-to-br from-[#111827] to-[#0B0F1A] shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
+              <CardHeader>
+                <CardTitle className="text-white">Experience</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(profile.experience || []).map((exp, i) => (
+                  <div key={i} className="p-4 rounded-lg border border-white/8 bg-white/5 space-y-3">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <Input
+                        placeholder="Role"
+                        value={exp.title || ''}
+                        onChange={(e) => {
+                          const next = [...profile.experience];
+                          next[i] = { ...next[i], title: e.target.value };
+                          patch('experience', next);
+                        }}
+                        className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                      />
+                      <Input
+                        placeholder="Company"
+                        value={exp.company || ''}
+                        onChange={(e) => {
+                          const next = [...profile.experience];
+                          next[i] = { ...next[i], company: e.target.value };
+                          patch('experience', next);
+                        }}
+                        className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                      />
+                      <Input
+                        placeholder="Duration"
+                        value={exp.duration || ''}
+                        onChange={(e) => {
+                          const next = [...profile.experience];
+                          next[i] = { ...next[i], duration: e.target.value };
+                          patch('experience', next);
+                        }}
+                        className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                      />
+                      <Input
+                        placeholder="Location"
+                        value={exp.location || ''}
+                        onChange={(e) => {
+                          const next = [...profile.experience];
+                          next[i] = { ...next[i], location: e.target.value };
+                          patch('experience', next);
+                        }}
+                        className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                      />
+                    </div>
+                    <Textarea
+                      rows={3}
+                      placeholder="Highlights (one per line)"
+                      value={(exp.highlights || []).join('\n')}
+                      onChange={(e) => {
+                        const next = [...profile.experience];
+                        next[i] = {
+                          ...next[i],
+                          highlights: e.target.value.split('\n').map((x) => x.trim()).filter(Boolean),
+                        };
+                        patch('experience', next);
+                      }}
+                      className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                    />
+                    <button
+                      onClick={() => patch('experience', profile.experience.filter((_, idx) => idx !== i))}
+                      className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#E5E7EB] hover:border-red-400/30 hover:bg-red-400/10"
+                    >
+                      <FiTrash2 className="h-4 w-4" /> Remove
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => patch('experience', [...(profile.experience || []), { ...emptyExperience }])}
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#E5E7EB] hover:border-[#06B6D4] hover:bg-white/10"
+                >
+                  <FiPlus className="h-4 w-4" /> Add Experience
+                </button>
+              </CardContent>
+            </Card>
+
+            {/* Projects Card */}
+            <Card className="border-white/8 bg-gradient-to-br from-[#111827] to-[#0B0F1A] shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
+              <CardHeader>
+                <CardTitle className="text-white">Projects</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(profile.projects || []).map((proj, i) => (
+                  <div key={i} className="p-4 rounded-lg border border-white/8 bg-white/5 space-y-3">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <Input
+                        placeholder="Project name"
+                        value={proj.name || ''}
+                        onChange={(e) => {
+                          const next = [...profile.projects];
+                          next[i] = { ...next[i], name: e.target.value };
+                          patch('projects', next);
+                        }}
+                        className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                      />
+                      <Input
+                        placeholder="Live link"
+                        value={proj.link || ''}
+                        onChange={(e) => {
+                          const next = [...profile.projects];
+                          next[i] = { ...next[i], link: e.target.value };
+                          patch('projects', next);
+                        }}
+                        className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                      />
+                    </div>
+                    <Textarea
+                      placeholder="Description"
+                      value={proj.description || ''}
+                      onChange={(e) => {
+                        const next = [...profile.projects];
+                        next[i] = { ...next[i], description: e.target.value };
+                        patch('projects', next);
+                      }}
+                      rows={3}
+                      className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                    />
+                    <Input
+                      placeholder="Tech stack (comma separated)"
+                      value={(proj.tech || []).join(', ')}
+                      onChange={(e) => {
+                        const next = [...profile.projects];
+                        next[i] = { ...next[i], tech: parseCsv(e.target.value) };
+                        patch('projects', next);
+                      }}
+                      className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                    />
+                  </div>
+                ))}
+                <button
+                  onClick={() => patch('projects', [...(profile.projects || []), { ...emptyProject }])}
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#E5E7EB] hover:border-[#06B6D4] hover:bg-white/10"
+                >
+                  <FiPlus className="h-4 w-4" /> Add Project
+                </button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Generate Assets Card */}
+            <Card className="border-white/8 bg-gradient-to-br from-[#111827] to-[#0B0F1A] shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
+              <CardHeader>
+                <CardTitle className="text-white">Generate Assets</CardTitle>
+                <CardDescription className="text-[#9CA3AF]">Create ATS-friendly resume text and a portfolio draft from this profile.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <button
+                  className="w-full rounded-lg bg-gradient-to-r from-[#7C3AED] to-[#06B6D4] px-4 py-2 text-white font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  onClick={() => generateAssets(false)}
+                >
+                  <FiFileText className="h-4 w-4" /> Generate Resume + Portfolio Content
+                </button>
+                <div>
+                  <label className="text-xs font-medium text-[#9CA3AF] mb-1 block">Resume Template (4 types)</label>
+                  <select
+                    value={resumeTemplate}
+                    onChange={(e) => setResumeTemplate(e.target.value)}
+                    className="w-full h-10 px-3 rounded-lg border border-white/10 bg-white/5 text-[#E5E7EB] text-sm focus:border-[#06B6D4]"
+                  >
+                    <option value="modern">Modern</option>
+                    <option value="classic">Classic</option>
+                    <option value="compact">Compact</option>
+                    <option value="executive">Executive</option>
+                  </select>
+                </div>
+                <button
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-[#E5E7EB] font-medium hover:border-[#06B6D4] hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                  onClick={downloadResume}
+                >
+                  <FiDownload className="h-4 w-4" /> Download ATS Resume (.pdf)
+                </button>
+                <button
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-[#E5E7EB] font-medium hover:border-[#06B6D4] hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                  onClick={() => generateAssets(true)}
+                >
+                  <FiZap className="h-4 w-4" /> Create Portfolio Draft in Editor
+                </button>
+                {generatedResume && (
+                  <Textarea
+                    value={generatedResume}
+                    readOnly
+                    rows={12}
+                    className="font-mono text-xs border-white/10 bg-white/5 text-[#E5E7EB]"
+                  />
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ATS Check Card */}
+            <Card className="border-white/8 bg-gradient-to-br from-[#111827] to-[#0B0F1A] shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
+              <CardHeader>
+                <CardTitle className="text-white">ATS Friendliness Check</CardTitle>
+                <CardDescription className="text-[#9CA3AF]">Paste a target job description for match analysis.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Textarea
+                  rows={8}
+                  placeholder="Paste target job description..."
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                  className="border-white/10 bg-white/5 text-[#E5E7EB] placeholder-[#6B7280] focus:border-[#06B6D4]"
+                />
+                <button
+                  className="w-full rounded-lg bg-gradient-to-r from-[#7C3AED] to-[#06B6D4] px-4 py-2 text-white font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  onClick={runATS}
+                >
+                  <FiTarget className="h-4 w-4" /> Run ATS Check
+                </button>
+
+                {atsResult && (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <span className="text-[#9CA3AF]">ATS Score</span>
+                        <span className="font-semibold text-[#06B6D4]">{atsResult.score}/100</span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div className={`h-full ${atsTone}`} style={{ width: `${atsResult.score}%` }} />
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-[#9CA3AF]">
+                      Keyword coverage: <strong className="text-[#06B6D4]">{atsResult.keywordCoverage}%</strong>
+                    </div>
+
+                    {!!atsResult.issues?.length && (
+                      <div>
+                        <p className="text-sm font-semibold text-[#E5E7EB] mb-1">Issues</p>
+                        <ul className="text-xs text-red-400 list-disc pl-4 space-y-1">
+                          {atsResult.issues.map((x, i) => <li key={i}>{x}</li>)}
+                        </ul>
+                      </div>
+                    )}
+
+                    {!!atsResult.suggestions?.length && (
+                      <div>
+                        <p className="text-sm font-semibold text-[#E5E7EB] mb-1">Suggestions</p>
+                        <ul className="text-xs text-green-400 list-disc pl-4 space-y-1">
+                          {atsResult.suggestions.map((x, i) => <li key={i}>{x}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

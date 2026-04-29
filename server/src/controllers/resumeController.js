@@ -78,7 +78,9 @@ export const parseResumeFile = async (req, res, next) => {
       success: true,
       data: {
         parsed,
+        rawText,
         filename: originalname,
+        mimeType: mimetype,
         charCount: rawText.length,
       },
     });

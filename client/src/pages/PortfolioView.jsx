@@ -19,10 +19,14 @@ export default function PortfolioView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading portfolio...</p>
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0B0F1A]">
+        <div className="absolute inset-0 brand-grid opacity-25" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-[#7C3AED]/15 blur-3xl" />
+        <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-[#06B6D4]/12 blur-3xl" />
+        
+        <div className="relative text-center">
+          <div className="w-16 h-16 rounded-full border-4 border-[#2563EB]/30 border-t-[#06B6D4] animate-spin mx-auto mb-6" />
+          <p className="text-[#9CA3AF]">Loading portfolio...</p>
         </div>
       </div>
     );
@@ -30,11 +34,15 @@ export default function PortfolioView() {
 
   if (error || !portfolio) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
-          <p className="text-gray-600 mb-4">{error || 'Portfolio not found'}</p>
-          <a href="/" className="text-blue-600 hover:underline">
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0B0F1A] text-[#E5E7EB]">
+        <div className="absolute inset-0 brand-grid opacity-25" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-[#7C3AED]/15 blur-3xl" />
+        <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-[#06B6D4]/12 blur-3xl" />
+        
+        <div className="relative text-center">
+          <h1 className="text-6xl font-bold text-[#E5E7EB] mb-4">404</h1>
+          <p className="text-[#9CA3AF] mb-6 text-lg">{error || 'Portfolio not found'}</p>
+          <a href="/" className="inline-block rounded-lg bg-gradient-to-r from-[#7C3AED] to-[#06B6D4] px-6 py-3 text-white font-medium hover:shadow-lg transition-all">
             Go back home
           </a>
         </div>

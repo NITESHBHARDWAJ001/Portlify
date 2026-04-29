@@ -146,65 +146,151 @@ export function generateCanvasLayoutFromProfile(profile = {}, theme = 'midnight'
 
 export function generateResumeMarkdown(profile = {}) {
   const lines = [];
+  
+  // Header: Name
   lines.push(`# ${profile.name || 'Your Name'}`);
   lines.push('');
+  
+  // Professional headline
   lines.push(`${profile.headline || profile.title || 'Software Engineer'}`);
   lines.push('');
 
-  const contact = [profile.email, profile.phone, profile.location, profile.linkedin, profile.github, profile.website]
-    .filter(Boolean)
-    .join(' | ');
-  if (contact) {
-    lines.push(contact);
-    lines.push('');
+  // Contact information with smart formatting
+  const contactLines = [];
+  if (profile.email) contactLines.push(profile.email);
+  if (profile.phone) contactLines.push(profile.phone);
+  if (profile.location) contactLines.push(profile.location);
+  
+  if (contactLines.length) {
+    lines.push(contactLines.join(' | '));
   }
+  
+  // Social links (separated for PDF rendering)
+  const socialLinks = [];
+  if (profile.linkedin) socialLinks.push(`LinkedIn: ${profile.linkedin}`);
+  if (profile.github) socialLinks.push(`GitHub: ${profile.github}`);
+  if (profile.website) socialLinks.push(`Portfolio: ${profile.website}`);
+  
+  if (socialLinks.length) {
+    lines.push(socialLinks.join(' | '));
+  }
+  lines.push('');
 
-  if (profile.summary) {
-    lines.push('## Professional Summary');
+  // Professional Summary
+  if (profile.summary && profile.summary.trim()) {
+    lines.push('## PROFESSIONAL SUMMARY');
     lines.push(profile.summary);
     lines.push('');
   }
 
+  // Core Skills (ATS-friendly format)
   const skills = mapSkills(profile.skills).map((s) => s.name);
   if (skills.length) {
-    lines.push('## Core Skills');
-    lines.push(skills.join(', '));
+    lines.push('## CORE SKILLS');
+    // Group skills by type for better ATS parsing
+    const skillGroups = {};
+    skills.forEach((skill) => {
+      const category = categorizeSkill(skill);
+      if (!skillGroups[category]) skillGroups[category] = [];
+      skillGroups[category].push(skill);
+    });
+    
+    Object.entries(skillGroups).forEach(([category, categorySkills]) => {
+      lines.push(`${category}: ${categorySkills.join(', ')}`);
+    });
     lines.push('');
   }
 
+  // Professional Experience (most important for ATS)
   if ((profile.experience || []).length) {
-    lines.push('## Professional Experience');
+    lines.push('## PROFESSIONAL EXPERIENCE');
     lines.push('');
     profile.experience.forEach((exp) => {
-      lines.push(`### ${exp.title || 'Role'} - ${exp.company || 'Company'}`);
-      lines.push(`${exp.duration || ''} ${exp.location ? `| ${exp.location}` : ''}`.trim());
-      (exp.highlights || []).forEach((h) => lines.push(`- ${h}`));
+      const title = exp.title || 'Role';
+      const company = exp.company || 'Company';
+      const duration = exp.duration || '';
+      const location = exp.location || '';
+      
+      // Format: Job Title | Company | Duration | Location
+      lines.push(`### ${title}`);
+      lines.push(`**${company}** | ${duration} ${location ? `| ${location}` : ''}`.trim());
+      
+      // Highlights as bullet points (ATS loves these)
+      if (exp.highlights && exp.highlights.length) {
+        exp.highlights.forEach((h) => {
+          if (h && h.trim()) lines.push(`- ${h.trim()}`);
+        });
+      }
       lines.push('');
     });
   }
 
+  // Education
+  if ((profile.education || []).length) {
+    lines.push('## EDUCATION');
+    lines.push('');
+    profile.education.forEach((edu) => {
+      const degree = edu.degree || 'Degree';
+      const institution = edu.institution || 'Institution';
+      const duration = edu.duration ? ` | ${edu.duration}` : '';
+      
+      lines.push(`**${degree}** from **${institution}**${duration}`);
+    });
+    lines.push('');
+  }
+
+  // Projects
   if ((profile.projects || []).length) {
-    lines.push('## Projects');
+    lines.push('## PROJECTS');
     lines.push('');
     profile.projects.forEach((proj) => {
       lines.push(`### ${proj.name || 'Project'}`);
-      if (proj.description) lines.push(proj.description);
-      if ((proj.tech || []).length) lines.push(`Tech: ${proj.tech.join(', ')}`);
-      if (proj.link) lines.push(`Link: ${proj.link}`);
+      if (proj.description && proj.description.trim()) {
+        lines.push(proj.description.trim());
+      }
+      
+      const projDetails = [];
+      if ((proj.tech || []).length) {
+        projDetails.push(`Tech: ${proj.tech.join(', ')}`);
+      }
+      if (proj.link) {
+        projDetails.push(`Link: ${proj.link}`);
+      }
+      
+      projDetails.forEach((detail) => lines.push(detail));
       lines.push('');
     });
   }
 
-  if ((profile.education || []).length) {
-    lines.push('## Education');
-    lines.push('');
-    profile.education.forEach((edu) => {
-      lines.push(`- ${edu.degree || 'Degree'} - ${edu.institution || 'Institution'}${edu.duration ? ` (${edu.duration})` : ''}`);
-    });
-    lines.push('');
-  }
-
   return lines.join('\n').trim();
+}
+
+/**
+ * Categorize skills for better ATS organization
+ */
+function categorizeSkill(skill) {
+  const skill_lower = skill.toLowerCase();
+  
+  if (['react', 'vue', 'angular', 'svelte', 'nextjs', 'next.js', 'gatsby', 'remix'].some(s => skill_lower.includes(s))) {
+    return 'Frontend';
+  }
+  if (['node', 'express', 'django', 'flask', 'fastapi', 'spring', 'laravel', 'rails'].some(s => skill_lower.includes(s))) {
+    return 'Backend';
+  }
+  if (['python', 'javascript', 'typescript', 'java', 'c#', 'c++', 'rust', 'go', 'php', 'ruby', 'kotlin'].some(s => skill_lower.includes(s))) {
+    return 'Languages';
+  }
+  if (['postgresql', 'mysql', 'mongodb', 'redis', 'firebase', 'dynamodb', 'sql', 'nosql'].some(s => skill_lower.includes(s))) {
+    return 'Databases';
+  }
+  if (['aws', 'azure', 'gcp', 'heroku', 'vercel', 'netlify', 'docker', 'kubernetes', 'devops'].some(s => skill_lower.includes(s))) {
+    return 'Cloud & DevOps';
+  }
+  if (['git', 'github', 'gitlab', 'bitbucket', 'jira', 'agile', 'scrum'].some(s => skill_lower.includes(s))) {
+    return 'Tools & Methodologies';
+  }
+  
+  return 'Technical Skills';
 }
 
 export function defaultProfileData(user) {
