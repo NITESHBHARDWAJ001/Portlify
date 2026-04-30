@@ -49,17 +49,17 @@ export default function Login() {
       description="Use the same workspace to manage your portfolio, refine your resume story, and publish responsive pages that look sharp on every screen."
       badgeText="Secure sign in"
     >
-      <Card className="border-white/8 bg-white/5 shadow-[0_18px_70px_rgba(0,0,0,0.35)]">
-        <CardHeader className="p-0 pb-6">
+      <Card className="mx-auto max-w-[520px] overflow-hidden border-white/8 bg-white/5 p-2 shadow-[0_18px_70px_rgba(0,0,0,0.35)] sm:p-3">
+        <CardHeader className="pb-6 pt-1 sm:pt-2">
           <CardTitle className="text-2xl text-white">Portfolio Builder</CardTitle>
           <CardDescription className="text-[#9CA3AF]">
             Use your account to access the editor, templates, resume tools, and your live portfolio.
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="p-0">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+        <CardContent className="pt-0">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-3.5">
               <Label htmlFor="email" className="text-[#E5E7EB]">Email</Label>
               <div className="relative">
                 <FiMail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
@@ -75,7 +75,7 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3.5">
               <Label htmlFor="password" className="text-[#E5E7EB]">Password</Label>
               <div className="relative">
                 <FiLock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
@@ -109,7 +109,7 @@ export default function Login() {
             </Button>
           </form>
 
-          <div className="mt-5 flex items-center justify-between gap-4 text-sm text-[#9CA3AF]">
+          <div className="mt-8 flex items-center justify-between gap-4 text-sm text-[#9CA3AF]">
             <span>Need an account?</span>
             <Link to="/register" className="font-medium text-[#A5F3FC] transition hover:text-white">
               Create one

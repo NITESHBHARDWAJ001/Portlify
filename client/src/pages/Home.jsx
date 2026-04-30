@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FiArrowRight, FiBarChart2, FiGrid, FiLayers, FiMonitor, FiTarget, FiEdit3, FiZap, FiCheckCircle } from 'react-icons/fi';
+import { FaGithub, FaLinkedinIn } from 'react-icons/fa6';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import BrandLogo from '../components/branding/BrandLogo';
@@ -48,6 +49,8 @@ const atsPoints = [
   'Highlight skills, experience, and projects with the right hierarchy.',
   'Publish a portfolio that feels designed, not assembled.',
 ];
+
+const supportEmail = 'portlify.ind@gmail.com';
 
 export default function Home() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -362,10 +365,86 @@ export default function Home() {
               </div>
             </div>
           </section>
+
+          <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <Card className="border-white/8 bg-white/5 shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
+              <CardHeader className="p-6 pb-3">
+                <CardTitle className="text-2xl text-white">Built with love</CardTitle>
+                <CardDescription className="text-[#9CA3AF]">Creator credit and platform contact</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 p-6 pt-0">
+                <div className="rounded-2xl border border-white/8 bg-[#111827]/85 p-4">
+                  <p className="text-sm uppercase tracking-[0.24em] text-[#9CA3AF]">Builder</p>
+                  <p className="mt-2 text-2xl font-bold text-white">Nitesh Sharma</p>
+                  <p className="mt-2 text-sm leading-7 text-[#D1D5DB]">
+                    Built with love by Nitesh Sharma for creators who want a premium portfolio, resume intelligence, and a fast publishing flow.
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <a
+                    href="https://github.com/NITESHBHARDWAJ001"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open Nitesh Sharma GitHub profile"
+                    title="Open Nitesh Sharma GitHub profile"
+                    className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-sm text-[#E5E7EB] transition hover:border-[#06B6D4]/40 hover:bg-white/10"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#111827] text-white ring-1 ring-white/10 transition group-hover:ring-[#06B6D4]/40">
+                      <FaGithub className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block font-medium text-white">GitHub profile</span>
+                      <span className="block break-all text-xs text-[#93C5FD]">github.com/NITESHBHARDWAJ001</span>
+                    </span>
+                  </a>
+                  <a
+                    href="https://www.linkedin.com/in/nitesh-sharma-5b4115306"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open Nitesh Sharma LinkedIn profile"
+                    title="Open Nitesh Sharma LinkedIn profile"
+                    className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-sm text-[#E5E7EB] transition hover:border-[#06B6D4]/40 hover:bg-white/10"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#111827] text-white ring-1 ring-white/10 transition group-hover:ring-[#06B6D4]/40">
+                      <FaLinkedinIn className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block font-medium text-white">LinkedIn profile</span>
+                      <span className="block break-all text-xs text-[#93C5FD]">linkedin.com/in/nitesh-sharma-5b4115306</span>
+                    </span>
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-white/8 bg-[#111827]/90 shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
+              <CardHeader className="p-6 pb-3">
+                <CardTitle className="text-2xl text-white">Platform suggestions</CardTitle>
+                <CardDescription className="text-[#9CA3AF]">Help shape what comes next</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 p-6 pt-0">
+                <p className="text-sm leading-7 text-[#D1D5DB]">
+                  If you want to suggest new blocks, templates, AI prompts, ATS improvements, or any other additions, send them here:
+                </p>
+
+                <a
+                  href={`mailto:${supportEmail}`}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-[#06B6D4]/25 bg-[#06B6D4]/10 px-4 py-3 text-sm font-semibold text-[#A5F3FC] transition hover:border-[#06B6D4]/50 hover:bg-[#06B6D4]/15"
+                >
+                  {supportEmail}
+                </a>
+
+                <p className="text-xs leading-6 text-[#9CA3AF]">
+                  Suggestions, additions, bug reports, and feature ideas are all welcome.
+                </p>
+              </CardContent>
+            </Card>
+          </section>
         </main>
 
         <footer className="pb-8 pt-4 text-center text-sm text-[#6B7280]">
-          Portlify — a complete portfolio, resume, and career storytelling system.
+          Portlify — a complete portfolio, resume, and career storytelling system. Built with love by Nitesh Sharma.
         </footer>
       </div>
     </div>

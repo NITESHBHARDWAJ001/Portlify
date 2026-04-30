@@ -51,17 +51,17 @@ export default function Register() {
       description="Create a workspace for your portfolio, resume details, and public profile. The experience is responsive, clean, and fast to edit."
       badgeText="Fast onboarding"
     >
-      <Card className="border-white/8 bg-white/5 shadow-[0_18px_70px_rgba(0,0,0,0.35)]">
-        <CardHeader className="p-0 pb-6">
+      <Card className="mx-auto max-w-[520px] overflow-hidden border-white/8 bg-white/5 p-2 shadow-[0_18px_70px_rgba(0,0,0,0.35)] sm:p-3">
+        <CardHeader className="pb-6 pt-1 sm:pt-2">
           <CardTitle className="text-2xl text-white">Create account</CardTitle>
           <CardDescription className="text-[#9CA3AF]">
             Add your details once, then shape your portfolio and resume story from one place.
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="p-0">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+        <CardContent className="pt-0">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-3.5">
               <Label htmlFor="username" className="text-[#E5E7EB]">Username</Label>
               <div className="relative">
                 <FiUser className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
@@ -78,7 +78,7 @@ export default function Register() {
               <p className="text-xs text-[#6B7280]">This becomes your portfolio URL.</p>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3.5">
               <Label htmlFor="fullName" className="text-[#E5E7EB]">Full Name</Label>
               <div className="relative">
                 <FiUserCheck className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
@@ -93,7 +93,7 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3.5">
               <Label htmlFor="email" className="text-[#E5E7EB]">Email</Label>
               <div className="relative">
                 <FiMail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
@@ -109,7 +109,7 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3.5">
               <Label htmlFor="password" className="text-[#E5E7EB]">Password</Label>
               <div className="relative">
                 <FiLock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
@@ -144,7 +144,7 @@ export default function Register() {
             </Button>
           </form>
 
-          <div className="mt-5 flex items-center justify-between gap-4 text-sm text-[#9CA3AF]">
+          <div className="mt-8 flex items-center justify-between gap-4 text-sm text-[#9CA3AF]">
             <span>Already have an account?</span>
             <Link to="/login" className="font-medium text-[#A5F3FC] transition hover:text-white">
               Sign in
